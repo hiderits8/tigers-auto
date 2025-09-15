@@ -13,7 +13,7 @@ export const stamp = async (page: Page): Promise<{ stamped: boolean }> => {
     await page.goto(STAMP_URL, { waitUntil: "networkidle2" });
 
     const isDisabled = await page.$eval(
-        "//button[@name='stampBtn']",
+        "button[name='stampBtn']",
         (el) => el.getAttribute("disabled") === "disabled"
     );
 
@@ -23,6 +23,6 @@ export const stamp = async (page: Page): Promise<{ stamped: boolean }> => {
     }
 
     // スタンプを押す
-    await page.click("//button[@name='stampBtn']");
+    await page.click("button[name='stampBtn']");
     return { stamped: true };
 };

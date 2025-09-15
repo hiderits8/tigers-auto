@@ -5,7 +5,7 @@
     "license": "MIT",
     "author": "hiderits8",
     "type": "esmodule",
-    "main": "main.js",
+    "main": "index.js",
     "scripts": {
         "build": "tsc",
         "start": "node dist/index.js",

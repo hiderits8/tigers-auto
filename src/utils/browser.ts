@@ -7,7 +7,7 @@ const LOG_PATH = path.resolve("logs/browser.log");
 
 export const launchBrowser = async (): Promise<Browser> => {
     const browser = await puppeteer.launch({
-        headless: true,
+        headless: false,
         args: ["--no-sandbox"],
     });
     return browser;
