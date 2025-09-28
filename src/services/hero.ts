@@ -9,80 +9,103 @@ if (!BASE_URL || !HERO_PLAYER_NAME) {
 }
 
 const cannotVote = async (page: Page): Promise<boolean> => {
-    const textNode = await page.waitForSelector(
-        "#contents > section.article01"
-    );
-    const text: string | null | undefined = await textNode?.evaluate(
-        (el) => el.textContent
-    );
+    const title = await page.title();
+    if (title.includes("ページが見つかりません")) {
+        return true;
+    }
+
+    const cannotVoteMessage = await page.evaluate(() => {
+        const element = document.querySelector(
+            "#contents > section.article01 > p"
+        );
+        if (!element) {
+            return null;
+        }
+        return element.textContent;
+    });
+
     if (
-        !text ||
-        text.includes("この企画の応募期間は終了いたしました。") ||
-        text.includes("ページが見つかりません")
+        cannotVoteMessage &&
+        cannotVoteMessage.includes("この企画の応募期間は終了いたしました。")
     ) {
         return true;
     }
-    return false;
-};
 
-const goToVotePage = async (page: Page): Promise<boolean> => {
-    // プレゼントページへ
-    await page.waitForSelector("section.btnset01.article01.timer_set");
+    const alreadyVotedMessage = await page.evaluate(() => {
+        const element = document.querySelector(
+            "#contents > section.article01 > p"
+        );
+        if (!element) {
+            return null;
+        }
+        return element.textContent;
+    });
 
-    await page.click("section.btnset01.article01.timer_set > a");
-
-    if (await cannotVote(page)) {
-        console.log("本日は投票できません。");
-        return false;
+    if (
+        alreadyVotedMessage &&
+        alreadyVotedMessage.includes("この企画への応募は完了いたしております。")
+    ) {
+        return true;
     }
 
-    // 投票ページへ
-    Promise.all([
-        await page.waitForSelector("//*[@id='contents']/section[3]/div/a"),
-        await page.click("//*[@id='contents']/section[3]/div/a"),
-    ]);
-    return true;
+    return false;
 };
 
 export const vote = async (page: Page): Promise<void> => {
     await page.goto(HERO_URL, { waitUntil: "networkidle2" });
 
     // 投票ページへ
-    if (!(await goToVotePage(page))) {
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: "networkidle2" }),
+        page.click("#contents > section:nth-child(9) > a"),
+    ]);
+
+    if (await cannotVote(page)) {
+        console.log("投票できませんでした。");
         return;
     }
 
+    // 投票ページへ
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: "networkidle2" }),
+        page.click("#contents > section:nth-child(6) > div > a"),
+    ]);
+
     // プレイヤーを選択
-    await page.waitForSelector("#MemberPresentPresentOptionId");
-    const playerTxt = await page.$$eval(
-        "#MemberPresentPresentOptionId",
-        (options) => {
-            return options.find((option) =>
-                option.textContent?.includes(HERO_PLAYER_NAME)
-            ) as HTMLOptionElement;
-        }
+    const heroName = HERO_PLAYER_NAME.trim();
+
+    const valueToSelect = await page.$$eval(
+        "#MemberPresentPresentOptionId option",
+        (options, hero) => {
+            const hit = (options as HTMLOptionElement[]).find((o) =>
+                (o.textContent || "").includes(hero as string)
+            );
+            return hit ? hit.value : null;
+        },
+        heroName
     );
-    await page.select("#MemberPresentPresentOptionId", playerTxt.value);
+
+    if (!valueToSelect) {
+        throw new Error(`該当選手が見つかりません: ${heroName}`);
+    }
+
+    await page.select("#MemberPresentPresentOptionId", valueToSelect);
 
     // 投票ボタンを押す
-    Promise.all([
-        await page.waitForSelector(
-            "#MemberEnqueteInputForm > section:nth-child(5) > div.form01 > div.btnset02.set > ul > li > input[type=submit]"
-        ),
-        await page.click(
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: "networkidle2" }),
+        page.click(
             "#MemberEnqueteInputForm > section:nth-child(5) > div.form01 > div.btnset02.set > ul > li > input[type=submit]"
         ),
     ]);
 
     // 確認ボタンを押す
-    Promise.all([
-        await page.waitForSelector(
-            "#MemberEnqueteConfirmForm > section > div > div.btnset02.set > ul > li:nth-child(1) > input[type=submit]"
-        ),
-        await page.click(
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: "networkidle2" }),
+        page.click(
             "#MemberEnqueteConfirmForm > section > div > div.btnset02.set > ul > li:nth-child(1) > input[type=submit]"
         ),
     ]);
 
-    console.log("投票が完了しました。");
+    console.log("投票が完了しました");
 };
