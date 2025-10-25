@@ -9,9 +9,7 @@
     "scripts": {
         "build": "tsc",
         "start": "node dist/index.js",
-        "dev": "ts-node src/index.ts",
-        "hero": "ts-node src/index.ts --task=hero",
-        "stamp": "ts-node src/index.ts --task=stamp"
+        "dev": "ts-node src/index.ts"
     },
     "dependencies": {
         "dotenv": "^17.2.2",
