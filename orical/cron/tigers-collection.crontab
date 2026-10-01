@@ -1,0 +1,9 @@
+SHELL=/bin/zsh
+PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin
+TZ=Asia/Tokyo
+
+# スタミナ上限6に届く前の4時間間隔。0/8/16時は練習、0/12時は報酬も処理。
+5 0,4,8,12,16,20 * * * cd /Users/tsukamotowataru/tigers-auto/orical && /bin/zsh -lc 'echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] START tigers-collection"; /usr/local/bin/node dist/index.js; status=$?; echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] END tigers-collection status=$status"; exit $status' >> logs/cron.log 2>&1
+
+# 木曜13:30〜15:00のメンテナンス明け。イベント開始・エントリーと開始時スタミナの消費。
+5 15 * * 4 cd /Users/tsukamotowataru/tigers-auto/orical && /bin/zsh -lc 'echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] START tigers-collection-thursday-entry"; /usr/local/bin/node dist/index.js; status=$?; echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] END tigers-collection-thursday-entry status=$status"; exit $status' >> logs/cron.log 2>&1

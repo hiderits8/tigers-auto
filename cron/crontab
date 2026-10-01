@@ -1,0 +1,14 @@
+SHELL=/bin/zsh
+PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin
+TZ=Asia/Tokyo
+
+0 6 * * * cd /Users/tsukamotowataru/tigers-auto/official && /bin/zsh -lc 'echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] START stamp"; /usr/local/bin/node dist/index.js; echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] END   stamp"' >> logs/cron.log 2>&1
+0 7 * * * cd /Users/tsukamotowataru/tigers-auto/official && /bin/zsh -lc 'echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] START stamp"; /usr/local/bin/node dist/index.js; echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] END   stamp"' >> logs/cron.log 2>&1
+0 12 * * * cd /Users/tsukamotowataru/tigers-auto/official && /bin/zsh -lc 'echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] START stamp"; /usr/local/bin/node dist/index.js; echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] END   stamp"' >> logs/cron.log 2>&1
+1 0 * * * cd /Users/tsukamotowataru/tigers-auto/official && /bin/zsh -lc 'echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] START stamp"; /usr/local/bin/node dist/index.js; echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] END   stamp"' >> logs/cron.log 2>&1
+
+# Tigers COLLECTION: stamina, rewards, login popups, HERO prediction, practice, and matches.
+5 0,4,8,12,16,20 * * * cd /Users/tsukamotowataru/tigers-auto/orical && /bin/zsh -lc 'echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] START tigers-collection"; /usr/local/bin/node dist/index.js; status=$?; echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] END tigers-collection status=$status"; exit $status' >> logs/cron.log 2>&1
+
+# Thursday event start after maintenance.
+5 15 * * 4 cd /Users/tsukamotowataru/tigers-auto/orical && /bin/zsh -lc 'echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] START tigers-collection-thursday-entry"; /usr/local/bin/node dist/index.js; status=$?; echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] END tigers-collection-thursday-entry status=$status"; exit $status' >> logs/cron.log 2>&1
