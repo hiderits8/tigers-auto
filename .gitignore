@@ -1,6 +1,8 @@
 node_modules
+.DS_Store
 .env
-/data
-/logs
+/official/data
+/official/logs
+/orical/data
+/orical/logs
 /.vscode
-

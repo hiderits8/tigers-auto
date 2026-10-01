@@ -1,0 +1,8 @@
+SHELL=/bin/zsh
+PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin
+TZ=Asia/Tokyo
+
+0 6 * * * cd /Users/tsukamotowataru/tigers-auto/official && /bin/zsh -lc 'echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] START stamp"; /usr/local/bin/node dist/index.js; echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] END   stamp"' >> logs/cron.log 2>&1
+0 7 * * * cd /Users/tsukamotowataru/tigers-auto/official && /bin/zsh -lc 'echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] START stamp"; /usr/local/bin/node dist/index.js; echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] END   stamp"' >> logs/cron.log 2>&1
+0 12 * * * cd /Users/tsukamotowataru/tigers-auto/official && /bin/zsh -lc 'echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] START stamp"; /usr/local/bin/node dist/index.js; echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] END   stamp"' >> logs/cron.log 2>&1
+1 0 * * * cd /Users/tsukamotowataru/tigers-auto/official && /bin/zsh -lc 'echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] START stamp"; /usr/local/bin/node dist/index.js; echo "[$(/bin/date +\%Y-\%m-\%d\ \%H:\%M:\%S)] END   stamp"' >> logs/cron.log 2>&1
