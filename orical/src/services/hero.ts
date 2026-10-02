@@ -29,39 +29,53 @@ export const voteLikePrevious = async (page: Page): Promise<void> => {
         return;
     }
 
-    const previousButtons = await page.$$("button.set-bets-button");
-    if (previousButtons.length === 0) {
-        if (text.includes("予想が未設定です")) {
-            throw new Error("前回と同じ選手を選ぶボタンが見つかりません。");
-        }
-        console.log("HERO予想は変更不要です");
+    const missingKinds = await page.evaluate(() =>
+        (["fielder", "pitcher"] as const).filter((kind) => {
+            const section = document.querySelector(`.tab-content.relative.${kind}`);
+            return section?.textContent?.includes("未選択") ?? false;
+        })
+    );
+
+    if (missingKinds.length === 0) {
+        console.log("HERO予想は野手・投手とも設定済みです");
         return;
     }
-
-    for (const button of previousButtons) {
-        const state = await button.evaluate((element) => ({
-            disabled: (element as HTMLButtonElement).disabled,
-            visible: getComputedStyle(element).display !== "none",
-        }));
-        if (!state.disabled && state.visible) {
-            await button.click();
-            await sleep(500);
-        }
-    }
-
-    const submit = await page.$("button.mvp-button");
-    if (!submit) throw new Error("HERO予想の確定ボタンが見つかりません。");
-    const submitState = await submit.evaluate((element) => ({
-        disabled: (element as HTMLButtonElement).disabled,
-        text: (element as HTMLElement).innerText,
-    }));
-    if (submitState.disabled) throw new Error(`HERO予想を確定できません: ${submitState.text}`);
 
     if (config.dryRun) {
-        console.log(`[dry-run] HERO予想を前回と同じ選手で確定します: ${submitState.text.trim()}`);
+        console.log(`[dry-run] HERO予想の未設定枠を前回と同じ選手でセットします: ${missingKinds.join(", ")}`);
         return;
     }
-    await submit.click();
-    await sleep(2_000);
-    console.log("HERO予想を前回と同じ選手で保存しました");
+
+    for (const kind of missingKinds) {
+        const clicked = await page.evaluate((targetKind) => {
+            const button = document.querySelector(`button.set-bets-button.${targetKind}`);
+            if (!(button instanceof HTMLButtonElement) || button.disabled || !button.getClientRects().length) {
+                return false;
+            }
+            button.click();
+            return true;
+        }, kind);
+        if (!clicked) throw new Error(`${kind}の前回と同じ選手を選ぶボタンを押せません。`);
+
+        await page.waitForFunction(
+            (targetKind) => {
+                const section = document.querySelector(`.tab-content.relative.${targetKind}`);
+                return Boolean(section && !section.textContent?.includes("未選択"));
+            },
+            { timeout: 10_000 },
+            kind
+        );
+        await sleep(500);
+        await dismissBlockingOverlays(page);
+    }
+
+    const stillMissing = await page.evaluate(() =>
+        (["fielder", "pitcher"] as const).filter((kind) =>
+            document.querySelector(`.tab-content.relative.${kind}`)?.textContent?.includes("未選択")
+        )
+    );
+    if (stillMissing.length > 0) {
+        throw new Error(`HERO予想の未設定枠が残っています: ${stillMissing.join(", ")}`);
+    }
+    console.log(`HERO予想を前回と同じ選手で保存しました: ${missingKinds.join(", ")}`);
 };
