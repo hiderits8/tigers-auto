@@ -18,6 +18,9 @@ const openHeroPrediction = async (page) => {
     }
     await (0, dom_1.sleep)(1_000);
     await (0, dom_1.dismissInstallPrompt)(page);
+    await page.waitForSelector(".tab-content.relative.fielder, .tab-content.relative.pitcher", {
+        timeout: 10_000,
+    });
     return (0, dom_1.bodyText)(page);
 };
 const voteLikePrevious = async (page) => {
@@ -41,9 +44,13 @@ const voteLikePrevious = async (page) => {
         return;
     }
     for (const kind of missingKinds) {
+        await page.waitForFunction((targetKind) => {
+            const button = document.querySelector(`button.set-bets-button.${targetKind}`);
+            return button instanceof HTMLButtonElement && !button.disabled;
+        }, { timeout: 10_000 }, kind);
         const clicked = await page.evaluate((targetKind) => {
             const button = document.querySelector(`button.set-bets-button.${targetKind}`);
-            if (!(button instanceof HTMLButtonElement) || button.disabled || !button.getClientRects().length) {
+            if (!(button instanceof HTMLButtonElement) || button.disabled) {
                 return false;
             }
             button.click();
@@ -56,7 +63,15 @@ const voteLikePrevious = async (page) => {
             return Boolean(section && !section.textContent?.includes("未選択"));
         }, { timeout: 10_000 }, kind);
         await (0, dom_1.sleep)(500);
-        await (0, dom_1.dismissBlockingOverlays)(page);
+        const closed = await page.evaluate(() => {
+            const button = document.querySelector("button.e2e--popup-base-close");
+            if (!(button instanceof HTMLButtonElement))
+                return false;
+            button.click();
+            return true;
+        });
+        if (closed)
+            await (0, dom_1.sleep)(400);
     }
     const stillMissing = await page.evaluate(() => ["fielder", "pitcher"].filter((kind) => document.querySelector(`.tab-content.relative.${kind}`)?.textContent?.includes("未選択")));
     if (stillMissing.length > 0) {

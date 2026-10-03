@@ -15,6 +15,9 @@ const openHeroPrediction = async (page: Page): Promise<string> => {
     }
     await sleep(1_000);
     await dismissInstallPrompt(page);
+    await page.waitForSelector(".tab-content.relative.fielder, .tab-content.relative.pitcher", {
+        timeout: 10_000,
+    });
     return bodyText(page);
 };
 
@@ -47,9 +50,17 @@ export const voteLikePrevious = async (page: Page): Promise<void> => {
     }
 
     for (const kind of missingKinds) {
+        await page.waitForFunction(
+            (targetKind) => {
+                const button = document.querySelector(`button.set-bets-button.${targetKind}`);
+                return button instanceof HTMLButtonElement && !button.disabled;
+            },
+            { timeout: 10_000 },
+            kind
+        );
         const clicked = await page.evaluate((targetKind) => {
             const button = document.querySelector(`button.set-bets-button.${targetKind}`);
-            if (!(button instanceof HTMLButtonElement) || button.disabled || !button.getClientRects().length) {
+            if (!(button instanceof HTMLButtonElement) || button.disabled) {
                 return false;
             }
             button.click();
@@ -66,7 +77,13 @@ export const voteLikePrevious = async (page: Page): Promise<void> => {
             kind
         );
         await sleep(500);
-        await dismissBlockingOverlays(page);
+        const closed = await page.evaluate(() => {
+            const button = document.querySelector("button.e2e--popup-base-close");
+            if (!(button instanceof HTMLButtonElement)) return false;
+            button.click();
+            return true;
+        });
+        if (closed) await sleep(400);
     }
 
     const stillMissing = await page.evaluate(() =>
