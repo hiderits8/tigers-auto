@@ -10,11 +10,15 @@ const openSponsor = async (page) => {
     const image = await page.$('img[src*="button_sponsor_v2"]');
     if (!image)
         throw new Error("虎ポイント（スポンサー）ボタンが見つかりません。");
-    await image.click();
-    await page.waitForFunction(() => document.body?.innerText.includes("ポイントを貯める"), {
-        timeout: 30_000,
-    });
-    await page.waitForSelector(CARD_SELECTOR, { timeout: 30_000 });
+    await image.evaluate((element) => element.click());
+    try {
+        await page.waitForFunction((cardSelector) => document.body?.innerText.includes("ポイントを貯める") &&
+            document.querySelectorAll(cardSelector).length > 0, { timeout: 10_000 }, CARD_SELECTOR);
+    }
+    catch {
+        const text = (await (0, dom_1.bodyText)(page)).replace(/\s+/g, " ").trim().slice(0, 500);
+        throw new Error(`スポンサー一覧を開けません: ${page.url()} / ${text}`);
+    }
     await (0, dom_1.dismissInstallPrompt)(page);
 };
 const findUnclaimedCard = async (page) => {
